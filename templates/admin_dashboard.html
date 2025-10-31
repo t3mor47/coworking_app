@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Administración / Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f8f9fa;
+        }
+        h1 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background: #007bff;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background: #f2f2f2;
+        }
+        button {
+            padding: 5px 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #c82333;
+        }
+        #refresh {
+            background: #28a745;
+            margin-bottom: 15px;
+        }
+        #refresh:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h1>Panel de Administración / Admin Dashboard</h1>
+    <button id="refresh">🔄 Actualizar / Refresh</button>
+    <table id="queueTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Nombre / Name</th>
+                <th>Código / Club Code</th>
+                <th>Device ID</th>
+                <th>Acción / Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        async function loadQueue() {
+            const res = await fetch("/api/admin/queue");
+            if (!res.ok) {
+                alert("Error al cargar la cola / Failed to load queue");
+                return;
+            }
+
+            const queue = await res.json();
+            const tbody = document.querySelector("#queueTable tbody");
+            tbody.innerHTML = "";
+
+            if (queue.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5">La cola está vacía / Queue is empty</td></tr>`;
+                return;
+            }
+
+            queue.forEach((p, i) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${i + 1}</td>
+                    <td>${p.name}</td>
+                    <td>${p.code}</td>
+                    <td>${p.device_id}</td>
+                    <td><button onclick="removeUser('${p.device_id}')">🗑️ Eliminar / Remove</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function removeUser(device_id) {
+            if (!confirm("¿Seguro que deseas eliminar este usuario? / Are you sure?")) return;
+            const res = await fetch("/api/admin/remove", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ device_id })
+            });
+            if (res.ok) {
+                await loadQueue();
+            } else {
+                alert("Error al eliminar / Failed to remove");
+            }
+        }
+
+        document.getElementById("refresh").addEventListener("click", loadQueue);
+        loadQueue();
+        setInterval(loadQueue, 10000); // автообновление каждые 10 сек
+    </script>
+</body>
+</html>

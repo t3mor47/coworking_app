@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login / Ingreso Administrador</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            max-width: 350px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        button {
+            margin-top: 20px;
+            width: 100%;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        p {
+            color: red;
+            text-align: center;
+            margin-top: 15px;
+        }
+        select {
+            margin-top: 10px;
+            width: 100%;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="title">Login Admin</h1>
+
+        <label for="language">Idioma / Language:</label>
+        <select id="language">
+            <option value="es">ES</option>
+            <option value="en">EN</option>
+        </select>
+
+        <label id="labelPassword">Contraseña:</label>
+        <input type="password" id="password" required>
+
+        <button id="loginBtn">Entrar</button>
+
+        <p id="message"></p>
+    </div>
+
+    <script>
+        const langSel = document.getElementById("language");
+        const title = document.getElementById("title");
+        const labelPassword = document.getElementById("labelPassword");
+        const loginBtn = document.getElementById("loginBtn");
+        const messageEl = document.getElementById("message");
+
+        function setLanguage() {
+            const lang = langSel.value;
+            if (lang === "es") {
+                title.innerText = "Ingreso Administrador";
+                labelPassword.innerText = "Contraseña:";
+                loginBtn.innerText = "Entrar";
+            } else {
+                title.innerText = "Admin Login";
+                labelPassword.innerText = "Password:";
+                loginBtn.innerText = "Login";
+            }
+        }
+
+        langSel.addEventListener("change", setLanguage);
+        setLanguage();
+
+        document.getElementById("loginBtn").addEventListener("click", async () => {
+            const password = document.getElementById("password").value.trim();
+            if (!password) return;
+
+            const res = await fetch("/api/admin/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password })
+            });
+
+            if (res.ok) {
+                window.location.href = "/admin_dashboard";
+            } else {
+                messageEl.innerText = langSel.value === "es"
+                    ? "Contraseña incorrecta"
+                    : "Wrong password";
+            }
+        });
+    </script>
+</body>
+</html>
