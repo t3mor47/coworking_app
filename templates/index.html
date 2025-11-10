@@ -159,3 +159,32 @@
   </script>
 </body>
 </html>
+
+<!-- ==== ТУТ НАЧИНАЕТСЯ БЛОК ТЕМЫ ==== -->
+<style>
+  body.dark {
+    background: #1c1c1c;
+    color: #f0f0f0;
+  }
+  body.dark input, body.dark button, body.dark select {
+    background: #333;
+    color: #f0f0f0;
+    border: 1px solid #666;
+  }
+</style>
+
+<button id="themeToggle" style="position:fixed;top:10px;right:10px;">🌓</button>
+
+<script>
+  const themeToggle = document.getElementById('themeToggle');
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') document.body.classList.add('dark');
+
+  themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    const current = document.body.classList.contains('dark') ? 'dark' : 'light';
+    localStorage.setItem('theme', current);
+  });
+</script>
+<!-- ==== КОНЕЦ БЛОКА ТЕМЫ ==== -->
+
