@@ -1,170 +1,161 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Unirse a la cola / Join Queue</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; }
-        label { display: block; margin-top: 15px; }
-        input { width: 100%; padding: 8px; margin-top: 5px; }
-        button { margin-top: 15px; padding: 10px 20px; }
-        p { margin-top: 20px; font-weight: bold; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Queue / Cola</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; }
+    label { display: block; margin-top: 15px; }
+    input { width: 100%; padding: 8px; margin-top: 5px; }
+    button { margin-top: 15px; padding: 10px 20px; }
+    p { margin-top: 20px; font-weight: bold; }
+    select { padding: 6px; font-size: 15px; }
+    option { padding: 4px; }
+  </style>
 </head>
 <body>
-    <h1 id="title">Unirse a la cola / Join Queue</h1>
+  <h1 id="title"></h1>
 
-    <label for="language">Idioma / Language:</label>
-    <select id="language">
-        <option value="es">ES</option>
-        <option value="en">EN</option>
-    </select>
+  <label for="language">🌐</label>
+  <select id="language">
+    <option value="es">🇪🇸 Español</option>
+    <option value="en">🇬🇧 English</option>
+    <option value="ar">🇸🇦 العربية</option>
+    <option value="it">🇮🇹 Italiano</option>
+    <option value="fr">🇫🇷 Français</option>
+    <option value="de">🇩🇪 Deutsch</option>
+    <option value="ru">🇷🇺 Русский</option>
+    <option value="uk">🇺🇦 Українська</option>
+  </select>
 
-    <form id="queueForm">
-        <label id="labelName">Nombre / Apodo:</label>
-        <input type="text" id="name" required>
+  <form id="queueForm">
+    <label id="labelName"></label>
+    <input type="text" id="name" required>
 
-        <label id="labelCode">Código del club / Club Code:</label>
-        <input type="text" id="club_code" required>
+    <label id="labelCode"></label>
+    <input type="text" id="club_code" required>
 
-        <button type="submit" id="joinBtn">Unirse a la cola / Join Queue</button>
-    </form>
+    <button type="submit" id="joinBtn"></button>
+  </form>
 
-    <p id="position"></p>
-    <p id="message"></p>
+  <p id="position"></p>
+  <p id="message"></p>
 
-    <script>
-        const form = document.getElementById('queueForm');
-        const positionEl = document.getElementById('position');
-        const messageEl = document.getElementById('message');
-        const languageSelect = document.getElementById('language');
-        const joinBtn = document.getElementById('joinBtn');
-        const nameInput = document.getElementById('name');
-        const codeInput = document.getElementById('club_code');
+  <script>
+    const form = document.getElementById('queueForm');
+    const positionEl = document.getElementById('position');
+    const messageEl = document.getElementById('message');
+    const languageSelect = document.getElementById('language');
+    const joinBtn = document.getElementById('joinBtn');
+    const nameInput = document.getElementById('name');
+    const codeInput = document.getElementById('club_code');
 
-        // --- Переводы ---
-        function setLanguage() {
-            const lang = languageSelect.value;
-            if (lang === 'es') {
-                document.getElementById('title').innerText = "Unirse a la cola";
-                document.getElementById('labelName').innerText = "Nombre / Apodo:";
-                document.getElementById('labelCode').innerText = "Código del club:";
-                joinBtn.innerText = "Unirse a la cola";
-            } else {
-                document.getElementById('title').innerText = "Join Queue";
-                document.getElementById('labelName').innerText = "Name / Nickname:";
-                document.getElementById('labelCode').innerText = "Club Code:";
-                joinBtn.innerText = "Join Queue";
-            }
-        }
-        languageSelect.addEventListener('change', setLanguage);
-        setLanguage();
+    const texts = {
+      es: { title: "Unirse a la cola", name: "Nombre / Apodo:", code: "Código del club:", join: "Unirse a la cola", pos: "Tu posición: ", error: "Por favor, ingresa tu nombre y código.", closed: "La cola está cerrada. Horario: 11:00–23:00." },
+      en: { title: "Join the Queue", name: "Name / Nickname:", code: "Club Code:", join: "Join Queue", pos: "Your position: ", error: "Please enter your name and code.", closed: "The queue is closed. Hours: 11:00–23:00." },
+      ar: { title: "انضم إلى الطابور", name: "الاسم / اللقب:", code: "رمز النادي:", join: "انضم إلى الطابور", pos: "موقعك: ", error: "الرجاء إدخال الاسم والرمز.", closed: "الطابور مغلق. الساعات: 11:00–23:00." },
+      it: { title: "Unisciti alla coda", name: "Nome / Soprannome:", code: "Codice del club:", join: "Unisciti alla coda", pos: "La tua posizione: ", error: "Inserisci nome e codice.", closed: "La coda è chiusa. Orario: 11:00–23:00." },
+      fr: { title: "Rejoindre la file", name: "Nom / Surnom:", code: "Code du club:", join: "Rejoindre", pos: "Votre position: ", error: "Veuillez entrer votre nom et code.", closed: "La file est fermée. Horaires: 11:00–23:00." },
+      de: { title: "Der Warteschlange beitreten", name: "Name / Spitzname:", code: "Club-Code:", join: "Beitreten", pos: "Deine Position: ", error: "Bitte Name und Code eingeben.", closed: "Die Warteschlange ist geschlossen. Zeiten: 11:00–23:00." },
+      ru: { title: "Встать в очередь", name: "Имя / Ник:", code: "Код клуба:", join: "Встать в очередь", pos: "Ваша позиция: ", error: "Введите имя и код.", closed: "Очередь закрыта. Время работы: 11:00–23:00." },
+      uk: { title: "Приєднатися до черги", name: "Ім'я / Прізвисько:", code: "Код клубу:", join: "Приєднатися", pos: "Ваша позиція: ", error: "Введіть ім'я та код.", closed: "Черга закрита. Години: 11:00–23:00." }
+    };
 
-        // --- Генерация и сохранение уникального device_id ---
-        function getDeviceId() {
-            let id = localStorage.getItem('device_id');
-            if (!id) {
-                id = 'dev-' + Math.random().toString(36).substring(2, 12);
-                localStorage.setItem('device_id', id);
-            }
-            return id;
-        }
-        const deviceId = getDeviceId();
+    function setLanguage() {
+      const lang = languageSelect.value;
+      document.getElementById('title').innerText = texts[lang].title;
+      document.getElementById('labelName').innerText = texts[lang].name;
+      document.getElementById('labelCode').innerText = texts[lang].code;
+      joinBtn.innerText = texts[lang].join;
+      updatePosition();
+    }
+    languageSelect.addEventListener('change', setLanguage);
+    setLanguage();
 
-        // --- Проверка статуса при загрузке ---
-        async function checkStatus() {
-            try {
-                const resp = await fetch(`/api/status/${deviceId}`);
-                const data = await resp.json();
-                if (data.in_queue) {
-                    showInQueueState(data.position);
-                } else {
-                    resetFormState();
-                }
-            } catch (err) {
-                console.error("Status check failed:", err);
-            }
-        }
+    function getDeviceId() {
+      let id = localStorage.getItem('device_id');
+      if (!id) {
+        id = 'dev-' + Math.random().toString(36).substring(2, 12);
+        localStorage.setItem('device_id', id);
+      }
+      return id;
+    }
+    const deviceId = getDeviceId();
 
-        // --- Показ состояния, если пользователь уже в очереди ---
-        function showInQueueState(position) {
-            const lang = languageSelect.value;
-            positionEl.innerText = (lang === 'es' ? 'Tu posición: ' : 'Your position: ') + position;
-            messageEl.innerText = '';
-            joinBtn.disabled = true;
-            nameInput.disabled = true;
-            codeInput.disabled = true;
-        }
+    async function checkStatus() {
+      try {
+        const resp = await fetch(`/api/status/${deviceId}`);
+        const data = await resp.json();
+        if (data.in_queue) showInQueueState(data.position);
+        else resetFormState();
+      } catch (err) { console.error("Status check failed:", err); }
+    }
 
-        // --- Возврат в начальное состояние ---
-        function resetFormState() {
-            joinBtn.disabled = false;
-            nameInput.disabled = false;
-            codeInput.disabled = false;
-            positionEl.innerText = '';
-            messageEl.innerText = '';
-        }
+    function showInQueueState(position) {
+      const lang = languageSelect.value;
+      positionEl.innerText = texts[lang].pos + position;
+      messageEl.innerText = '';
+      joinBtn.disabled = true;
+      nameInput.disabled = true;
+      codeInput.disabled = true;
+    }
 
-        // --- Автообновление позиции ---
-        async function updatePosition() {
-            try {
-                const resp = await fetch(`/api/status/${deviceId}`);
-                const data = await resp.json();
-                if (data.in_queue) {
-                    showInQueueState(data.position);
-                } else {
-                    resetFormState();
-                }
-            } catch (err) {
-                console.error("Update failed:", err);
-            }
-        }
-        setInterval(updatePosition, 10000); // каждые 10 сек
+    function resetFormState() {
+      joinBtn.disabled = false;
+      nameInput.disabled = false;
+      codeInput.disabled = false;
+      positionEl.innerText = '';
+      messageEl.innerText = '';
+    }
 
-        // --- Обработка формы ---
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = nameInput.value.trim();
-            const code = codeInput.value.trim();
-            const lang = languageSelect.value;
+    async function updatePosition() {
+      try {
+        const resp = await fetch(`/api/status/${deviceId}`);
+        const data = await resp.json();
+        if (data.in_queue) showInQueueState(data.position);
+        else resetFormState();
+      } catch (err) { console.error("Update failed:", err); }
+    }
+    setInterval(updatePosition, 10000);
 
-            if (!name || !code) {
-                alert(lang === 'es' ? "Por favor, ingresa tu nombre y código." : "Please enter your name and code.");
-                return;
-            }
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      const code = codeInput.value.trim();
+      const lang = languageSelect.value;
 
-            try {
-                const resp = await fetch('/api/join', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({name, code, device_id: deviceId})
-                });
+      if (!name || !code) {
+        alert(texts[lang].error);
+        return;
+      }
 
-                if (resp.status === 403) {
-                    const text = lang === 'es'
-                        ? "La cola está cerrada. Horario: 11:00–23:00."
-                        : "The queue is closed. Hours: 11:00–23:00.";
-                    alert(text);
-                    return;
-                }
-
-                const data = await resp.json();
-
-                if (data.error) {
-                    alert(lang === 'es' ? "Error: " + data.error : "Error: " + data.error);
-                    return;
-                }
-
-                showInQueueState(data.position);
-                localStorage.setItem('name', name);
-                localStorage.setItem('club_code', code);
-            } catch (err) {
-                console.error("Join error:", err);
-            }
+      try {
+        const resp = await fetch('/api/join', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ name, code, device_id: deviceId })
         });
 
-        // --- Запуск при загрузке страницы ---
-        checkStatus();
-    </script>
+        if (resp.status === 403) {
+          alert(texts[lang].closed);
+          return;
+        }
+
+        const data = await resp.json();
+        if (data.error) {
+          alert("Error: " + data.error);
+          return;
+        }
+
+        showInQueueState(data.position);
+        localStorage.setItem('name', name);
+        localStorage.setItem('club_code', code);
+      } catch (err) {
+        console.error("Join error:", err);
+      }
+    });
+
+    checkStatus();
+  </script>
 </body>
 </html>
