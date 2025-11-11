@@ -12,8 +12,14 @@
     select { padding: 6px; font-size: 15px; }
     option { padding: 4px; }
   </style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<style>
+  body { overflow: hidden !important; margin: 0; padding: 0; font-size:16px; }
+  #queueForm { display:flex; flex-direction:column; justify-content:center; align-items:center; margin:0 auto; max-width:95vw; }
+  input, select, button { width:90vw; max-width:300px; padding:12px; font-size:16px; margin-top:8px; box-sizing:border-box; }
+</style>
 </head>
-<body>
+<body style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;">
   <h1 id="title"></h1>
 
   <label for="language">🌐</label>
@@ -36,12 +42,14 @@
     <input type="text" id="club_code" required>
 
     <button type="submit" id="joinBtn"></button>
-  </form>
+<button type="button" id="refreshBtn"></button>
+</form>
 
   <p id="position"></p>
   <p id="message"></p>
 
   <script>
+  let deviceId = getDeviceId();
     const form = document.getElementById('queueForm');
     const positionEl = document.getElementById('position');
     const messageEl = document.getElementById('message');
@@ -50,15 +58,15 @@
     const nameInput = document.getElementById('name');
     const codeInput = document.getElementById('club_code');
 
-    const texts = {
-      es: { title: "Unirse a la cola", name: "Nombre / Apodo:", code: "Código del club:", join: "Unirse a la cola", pos: "Tu posición: ", error: "Por favor, ingresa tu nombre y código.", closed: "La cola está cerrada. Horario: 11:00–23:00." },
-      en: { title: "Join the Queue", name: "Name / Nickname:", code: "Club Code:", join: "Join Queue", pos: "Your position: ", error: "Please enter your name and code.", closed: "The queue is closed. Hours: 11:00–23:00." },
-      ar: { title: "انضم إلى الطابور", name: "الاسم / اللقب:", code: "رمز النادي:", join: "انضم إلى الطابور", pos: "موقعك: ", error: "الرجاء إدخال الاسم والرمز.", closed: "الطابور مغلق. الساعات: 11:00–23:00." },
-      it: { title: "Unisciti alla coda", name: "Nome / Soprannome:", code: "Codice del club:", join: "Unisciti alla coda", pos: "La tua posizione: ", error: "Inserisci nome e codice.", closed: "La coda è chiusa. Orario: 11:00–23:00." },
-      fr: { title: "Rejoindre la file", name: "Nom / Surnom:", code: "Code du club:", join: "Rejoindre", pos: "Votre position: ", error: "Veuillez entrer votre nom et code.", closed: "La file est fermée. Horaires: 11:00–23:00." },
-      de: { title: "Der Warteschlange beitreten", name: "Name / Spitzname:", code: "Club-Code:", join: "Beitreten", pos: "Deine Position: ", error: "Bitte Name und Code eingeben.", closed: "Die Warteschlange ist geschlossen. Zeiten: 11:00–23:00." },
-      ru: { title: "Встать в очередь", name: "Имя / Ник:", code: "Код клуба:", join: "Встать в очередь", pos: "Ваша позиция: ", error: "Введите имя и код.", closed: "Очередь закрыта. Время работы: 11:00–23:00." },
-      uk: { title: "Приєднатися до черги", name: "Ім'я / Прізвисько:", code: "Код клубу:", join: "Приєднатися", pos: "Ваша позиція: ", error: "Введіть ім'я та код.", closed: "Черга закрита. Години: 11:00–23:00." }
+const texts = {
+  ar: { title: "انضم إلى الطابور", name: "الاسم / اللقب:", code: "رمز النادي:", join: "انضم إلى الطابور", pos: "موقعك: ", refresh: "تحديث الموقع", error: "الرجاء إدخال الاسم والرمز.", closed: "الطابور مغلق. الساعات: 11:00–23:00." },
+  es: { title: "Unirse a la cola", name: "Nombre / Apodo:", code: "Código del club:", join: "Unirse a la cola", pos: "Tu posición: ", refresh: "Actualizar posición", error: "Por favor, ingresa tu nombre y código.", closed: "La cola está cerrada. Horario: 11:00–23:00." },
+  en: { title: "Join the queue", name: "Name / Nickname:", code: "Club code:", join: "Join the queue", pos: "Your position: ", refresh: "Refresh position", error: "Please enter your name and code.", closed: "Queue is closed. Working hours: 11:00–23:00." },
+  de: { title: "Der Warteschlange beitreten", name: "Name / Spitzname:", code: "Club-Code:", join: "Beitreten", pos: "Deine Position: ", refresh: "Position aktualisieren", error: "Bitte Name und Code eingeben.", closed: "Die Warteschlange ist geschlossen. Zeiten: 11:00–23:00." },
+  ru: { title: "Встать в очередь", name: "Имя / Ник:", code: "Код клуба:", join: "Встать в очередь", pos: "Ваша позиция: ", refresh: "Обновить позицию", error: "Введите имя и код.", closed: "Очередь закрыта. Время работы: 11:00–23:00." },
+  uk: { title: "Приєднатися до черги", name: "Ім'я / Прізвисько:", code: "Код клубу:", join: "Приєднатися", pos: "Ваша позиція: ", refresh: "Оновити позицію", error: "Введіть ім'я та код.", closed: "Черга закрита. Години: 11:00–23:00." },
+  fr: { title: "Rejoindre la file", name: "Nom / Surnom:", code: "Code du club:", join: "Rejoindre", pos: "Votre position: ", refresh: "Actualiser la position", error: "Veuillez entrer votre nom et code.", closed: "La file est fermée. Horaires: 11:00–23:00." },
+  it: { title: "Unisciti alla coda", name: "Nome / Soprannome:", code: "Codice del club:", join: "Unisciti alla coda", pos: "La tua posizione: ", refresh: "Aggiorna posizione", error: "Inserisci nome e codice.", closed: "La coda è chiusa. Orario: 11:00–23:00." },
     };
 
     function setLanguage() {
@@ -67,6 +75,8 @@
       document.getElementById('labelName').innerText = texts[lang].name;
       document.getElementById('labelCode').innerText = texts[lang].code;
       joinBtn.innerText = texts[lang].join;
+      const refreshBtn = document.getElementById("refreshBtn");
+      if (refreshBtn && texts[lang].refresh) refreshBtn.textContent = texts[lang].refresh;
       updatePosition();
     }
     languageSelect.addEventListener('change', setLanguage);
@@ -80,7 +90,6 @@
       }
       return id;
     }
-    const deviceId = getDeviceId();
 
     async function checkStatus() {
       try {
@@ -157,7 +166,199 @@
 
     checkStatus();
   </script>
+
+
+
+<script>
+(function(){
+
+// --- модальное окно ---
+function createModal(msg, okLabel){
+  let old=document.getElementById("infoModal");
+  if(old) old.remove();
+  const modal=document.createElement("div");
+  modal.id="infoModal";
+  modal.innerHTML=`
+  <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,0.35);z-index:1000;">
+    <div style="background:#fff;border-radius:12px;max-width:300px;width:90%;
+      padding:20px;box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;position:relative;">
+      <button id='closeModal' style='position:absolute;top:8px;right:10px;
+        border:none;background:none;font-size:20px;cursor:pointer;'>&times;</button>
+      <p style='font-size:16px;margin:20px 0;'>${msg}</p>
+      <button id='okModal' style='padding:8px 16px;background:#007aff;color:#fff;
+        border:none;border-radius:8px;font-size:15px;cursor:pointer;'>${okLabel}</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  document.getElementById("closeModal").onclick=
+  document.getElementById("okModal").onclick=()=>modal.remove();
+}
+
+
+}
+})();
+</script>
+
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const langSelect = document.getElementById("language");
+  const savedLang = localStorage.getItem("lang");
+  if (savedLang && langSelect) {
+    langSelect.value = savedLang;
+    if (typeof setLanguage === "function") setLanguage();
+  }
+  if (langSelect) {
+    langSelect.addEventListener("change", () => {
+      localStorage.setItem("lang", langSelect.value);
+    });
+  }
+  // после установки языка вызываем перевод интерфейса
+  if (typeof setLanguage === "function") {
+    setLanguage();
+  }
+});
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const nameInput = document.getElementById("name");
+  const codeInput = document.getElementById("club_code");
+
+  // Разрешаем только латинские буквы
+  if (nameInput) {
+    nameInput.addEventListener("input", () => {
+      nameInput.value = [...nameInput.value]
+        .filter(ch => /^[A-Za-zÀ-ÖØ-öø-ÿ]$/.test(ch))
+        .join('');
+    });
+  }
+
+  // Разрешаем только цифры
+  if (codeInput) {
+    codeInput.addEventListener("input", () => {
+      codeInput.value = codeInput.value.replace(/[^0-9]/g, '');
+    });
+  }
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const langSelect = document.getElementById("language");
+  const savedLang = localStorage.getItem("lang");
+  if (savedLang) langSelect.value = savedLang;
+  function setLanguage() {
+    const lang = langSelect.value;
+    document.getElementById("title").innerText = texts[lang].title;
+    document.getElementById("labelName").innerText = texts[lang].name;
+    document.getElementById("labelCode").innerText = texts[lang].code;
+    joinBtn.innerText = texts[lang].join;
+    const refreshBtn = document.getElementById("refreshBtn");
+    if (refreshBtn && texts[lang].refresh) refreshBtn.textContent = texts[lang].refresh;
+  }
+  langSelect.addEventListener("change", setLanguage);
+  setLanguage();
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const langSelect = document.getElementById("language");
+  const savedLang = localStorage.getItem("lang");
+  if (savedLang && langSelect) langSelect.value = savedLang;
+  function setLanguage() {
+    const lang = langSelect.value;
+    document.getElementById("title").innerText = texts[lang].title;
+    document.getElementById("labelName").innerText = texts[lang].name;
+    document.getElementById("labelCode").innerText = texts[lang].code;
+    joinBtn.innerText = texts[lang].join;
+    const refreshBtn = document.getElementById("refreshBtn");
+    if (refreshBtn && texts[lang].refresh) refreshBtn.textContent = texts[lang].refresh;
+  }
+  langSelect.addEventListener("change", setLanguage);
+  setLanguage();
+  const refreshBtn = document.getElementById("refreshBtn");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", () => {
+      const lang = langSelect.value || en;
+      const devId = localStorage.getItem("device_id");
+      if (!devId) {
+        createModal(texts[lang].notIn || "Please join first", texts[lang].ok || "OK");
+        return;
+      }
+      location.reload();
+    });
+  }
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const langSelect = document.getElementById("language");
+  const savedLang = localStorage.getItem("lang");
+  if (savedLang && langSelect) langSelect.value = savedLang;
+  function setLanguage() {
+    const lang = langSelect.value;
+    document.getElementById("title").innerText = texts[lang].title;
+    document.getElementById("labelName").innerText = texts[lang].name;
+    document.getElementById("labelCode").innerText = texts[lang].code;
+    joinBtn.innerText = texts[lang].join;
+    const refreshBtn = document.getElementById("refreshBtn");
+    if (refreshBtn) refreshBtn.textContent = texts[lang].refresh || "Refresh";
+  }
+  langSelect.addEventListener("change", setLanguage);
+  setLanguage();
+  const refreshBtn = document.getElementById("refreshBtn");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", () => {
+      const lang = langSelect.value || en;
+      const devId = localStorage.getItem("device_id");
+      if (!devId) {
+        createModal(texts[lang].notIn || "Please join first", texts[lang].ok || "OK");
+        return;
+      }
+      location.reload();
+    });
+  }
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const langSelect = document.getElementById("language");
+  const savedLang = localStorage.getItem("lang");
+  if (savedLang && langSelect) langSelect.value = savedLang;
+  function setLanguage() {
+    const lang = langSelect.value;
+    document.getElementById("title").innerText = texts[lang].title;
+    document.getElementById("labelName").innerText = texts[lang].name;
+    document.getElementById("labelCode").innerText = texts[lang].code;
+    joinBtn.innerText = texts[lang].join;
+    const refreshBtn = document.getElementById("refreshBtn");
+    if (refreshBtn) refreshBtn.textContent = texts[lang].refresh || "Refresh";
+  }
+  langSelect.addEventListener("change", setLanguage);
+  setLanguage();
+  const refreshBtn = document.getElementById("refreshBtn");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", () => {
+      const lang = langSelect.value || "en";
+      const devId = localStorage.getItem("device_id");
+      if (!devId) {
+        createModal(texts[lang].notIn || "Please join first", texts[lang].ok || "OK");
+        return;
+      }
+      location.reload();
+    });
+  }
+});
+</script>
 </body>
+
+
+
 </html>
 
 <!-- ==== ТУТ НАЧИНАЕТСЯ БЛОК ТЕМЫ ==== -->
@@ -173,7 +374,7 @@
   }
 </style>
 
-<button id="themeToggle" style="position:fixed;top:10px;right:10px;">🌓</button>
+<button id="themeToggle" style="position:fixed;top:10px;right:10px;font-size:14px;padding:6px 10px;width:auto;height:auto;">🌓</button>
 
 <script>
   const themeToggle = document.getElementById('themeToggle');
@@ -187,4 +388,3 @@
   });
 </script>
 <!-- ==== КОНЕЦ БЛОКА ТЕМЫ ==== -->
-

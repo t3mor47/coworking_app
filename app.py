@@ -4,6 +4,9 @@ from datetime import datetime
 import json
 import os
 import uuid
+import threading
+import time
+import requests
 
 app = Flask(__name__)
 app.secret_key = "super_secret_key"
@@ -14,6 +17,7 @@ QUEUE_FILE = "queue.json"
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "default_password")  # задаётся через Render
 OPEN_HOUR = 11
 CLOSE_HOUR = 23
+PING_URL = os.getenv("PING_URL")  # сюда мы подставим адрес Render позже
 
 # ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
 def load_queue():
@@ -38,6 +42,17 @@ def get_position(device_id):
 def is_queue_open():
     now = datetime.now().hour
     return OPEN_HOUR <= now < CLOSE_HOUR
+
+# ---------- АВТОПИНГ ЧТОБЫ СЕРВЕР НЕ ЗАСЫПАЛ ----------
+def keep_awake():
+    """Периодически пингует сайт, чтобы Render не «усыпал»."""
+    while True:
+        if PING_URL:
+            try:
+                requests.get(PING_URL)
+            except Exception:
+                pass
+        time.sleep(300)  # каждые 5 минут
 
 # ---------- ГЛОБАЛЬНАЯ ОЧЕРЕДЬ ----------
 queue = [p for p in load_queue() if "device_id" in p and p["device_id"]]
@@ -66,24 +81,20 @@ def api_join():
     code = data.get("code", "").strip()
     device_id = data.get("device_id")
 
-    # Если device_id не передан — генерируем новый
     if not device_id:
         device_id = str(uuid.uuid4())
 
-    # Проверяем, открыта ли очередь
     if not is_queue_open():
         return jsonify({"error": "closed", "message": "Queue open from 11:00 to 23:00"}), 403
 
     if not name or not code:
         return jsonify({"error": "missing", "message": "Missing name or code"}), 400
 
-    # Уже в очереди?
     for p in queue:
         if p["device_id"] == device_id:
             pos = get_position(device_id)
             return jsonify({"position": pos, "message": "Already in queue", "device_id": device_id})
 
-    # Добавляем нового участника
     queue.append({"name": name, "code": code, "device_id": device_id})
     save_queue(queue)
     pos = len(queue)
@@ -126,7 +137,7 @@ def api_admin_remove():
     save_queue(queue)
     return jsonify({"status": "ok"})
 
-# ---------- АЛИАСЫ ДЛЯ СОВМЕСТИМОСТИ С index.html ----------
+# ---------- АЛИАСЫ ----------
 @app.route("/join", methods=["POST"])
 def join_alias():
     return api_join()
@@ -147,4 +158,6 @@ def position_alias():
 
 # ---------- СТАРТ ----------
 if __name__ == "__main__":
+    if PING_URL:
+        threading.Thread(target=keep_awake, daemon=True).start()
     app.run(host="0.0.0.0", port=5050)
